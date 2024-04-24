@@ -142,8 +142,8 @@ public:
     };
   }
 
-  inline auto acquire_tag(const Tag& tag, std::unique_lock<std::mutex>& lock,
-                          const std::function<bool(void)>& abort_waiting) -> bool override {
+  inline auto acquire_tag(const Tag& tag, UniqueLock<Mutex>& lock, const std::function<bool(void)>& abort_waiting)
+      -> bool override {
     reactor_assert(lock.owns_lock());
     log_.debug() << "downstream tries to acquire tag " << tag;
 
@@ -208,8 +208,8 @@ public:
     };
   }
 
-  inline auto acquire_tag(const Tag& tag, std::unique_lock<std::mutex>& lock,
-                          const std::function<bool(void)>& abort_waiting) -> bool override {
+  inline auto acquire_tag(const Tag& tag, UniqueLock<Mutex>& lock, const std::function<bool(void)>& abort_waiting)
+      -> bool override {
     // Since this is a delayed connection, we can go back in time and need to
     // acquire the latest upstream tag that can create an event at the given
     // tag. We also need to consider that given a delay d and a tag g=(t, n),
@@ -237,8 +237,8 @@ public:
     };
   }
 
-  inline auto acquire_tag(const Tag& tag, std::unique_lock<std::mutex>& lock,
-                          const std::function<bool(void)>& abort_waiting) -> bool override {
+  inline auto acquire_tag(const Tag& tag, UniqueLock<Mutex>& lock, const std::function<bool(void)>& abort_waiting)
+      -> bool override {
     this->log_.debug() << "downstream tries to acquire tag " << tag;
     return PhysicalTimeBarrier::acquire_tag(tag, lock, this->environment()->scheduler(), abort_waiting);
   }

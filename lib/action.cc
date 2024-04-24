@@ -97,8 +97,8 @@ auto Action<void>::schedule_at(const Tag& tag) -> bool {
   return true;
 }
 
-auto BaseAction::acquire_tag(const Tag& tag, std::unique_lock<std::mutex>& lock,
-                             const std::function<bool(void)>& abort_waiting) -> bool {
+auto BaseAction::acquire_tag(const Tag& tag, UniqueLock<Mutex>& lock, const std::function<bool(void)>& abort_waiting)
+    -> bool {
   reactor_assert(!logical_);
   reactor_assert(lock.owns_lock());
   return PhysicalTimeBarrier::acquire_tag(tag, lock, environment()->scheduler(), abort_waiting);

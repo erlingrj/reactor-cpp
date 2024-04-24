@@ -4,8 +4,13 @@ if (DEFINED LF_REACTOR_CPP_SUFFIX)
   # the build is triggered from Lingua Franca
   set(LIB_TARGET "reactor-cpp-${LF_REACTOR_CPP_SUFFIX}")
 else()
-  set(LIB_TARGET "reactor-cpp")
+  set(LIB_TARGET "reactor-cpp2")
 endif()
+
+set(BOARD qemu_cortex_m3)
+
+find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE} 3.4.0)
+
 
 project(${LIB_TARGET} LANGUAGES CXX VERSION 0.0.1)
 
@@ -22,12 +27,12 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 set(BUILD_WITH_INSTALL_NAME_DIR ON)
 
 if (NOT DEFINED LF_REACTOR_CPP_SUFFIX)
-  find_program(CLANG_TIDY clang-tidy)
-  if (CLANG_TIDY)
-    set(CMAKE_CXX_CLANG_TIDY clang-tidy; -header-filter=reactor-cpp/\(.*\)\\.hh; -warnings-as-errors=*;)
-  else ()
-    message(WARNING "Please install clang-tidy!")
-  endif()
+  # find_program(CLANG_TIDY clang-tidy)
+  # if (CLANG_TIDY)
+  #   set(CMAKE_CXX_CLANG_TIDY clang-tidy; -header-filter=reactor-cpp/\(.*\)\\.hh; -warnings-as-errors=*;)
+  # else ()
+  #   message(WARNING "Please install clang-tidy!")
+  # endif()
 endif()
 
 find_package (Threads)
@@ -53,15 +58,7 @@ endif()
 
 configure_file(include/reactor-cpp/config.hh.in include/reactor-cpp/config.hh @ONLY)
 
-include(GNUInstallDirs)
-
 add_subdirectory(lib)
-if(NOT DEFINED LF_REACTOR_CPP_SUFFIX)
-  add_subdirectory(examples)
-endif()
-
-if (DEFINED LF_REACTOR_CPP_SUFFIX)
-  install(DIRECTORY include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${LIB_TARGET}")
-else()
-  install(DIRECTORY include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
-endif()
+target_sources(app PRIVATE main.cc)
+target_link_libraries(app PUBLIC reactor-cpp2)
+target_include_directories(app PUBLIC ${CMAKE_PROJECT_SOURCE_DIR}/include)

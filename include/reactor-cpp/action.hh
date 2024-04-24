@@ -48,8 +48,8 @@ protected:
    * Returns false if the wait was interrupted and true otherwise. True
    * indicates that the tag is safe to process.
    */
-  virtual auto acquire_tag(const Tag& tag, std::unique_lock<std::mutex>& lock,
-                           const std::function<bool(void)>& abort_waiting) -> bool;
+  virtual auto acquire_tag(const Tag& tag, UniqueLock<Mutex>& lock, const std::function<bool(void)>& abort_waiting)
+      -> bool;
 
   BaseAction(const std::string& name, Reactor* container, bool logical, Duration min_delay)
       : ReactorElement(name, ReactorElement::Type::Action, container)
@@ -74,7 +74,7 @@ private:
   ImmutableValuePtr<T> value_ptr_{nullptr};
 
   std::map<Tag, ImmutableValuePtr<T>> events_{};
-  std::mutex mutex_events_{};
+  Mutex mutex_events_{};
 
 protected:
   void setup() noexcept override;

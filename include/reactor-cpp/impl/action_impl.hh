@@ -31,7 +31,7 @@ template <class T> template <class Dur> void Action<T>::schedule(const Immutable
     scheduler->schedule_sync(this, tag);
     events_[tag] = value_ptr;
   } else {
-    std::lock_guard<std::mutex> lock{mutex_events_};
+    std::lock_guard<Mutex> lock{mutex_events_};
     // We must call schedule_async while holding the mutex, because otherwise
     // the scheduler could already start processing the event that we schedule
     // and call setup() on this action before we insert the value in events_.
@@ -68,7 +68,7 @@ template <class T> auto Action<T>::schedule_at(const ImmutableValuePtr<T>& value
     scheduler->schedule_sync(this, tag);
     events_[tag] = value_ptr;
   } else {
-    std::lock_guard<std::mutex> lock{mutex_events_};
+    std::lock_guard<Mutex> lock{mutex_events_};
     // We must call schedule_async while holding the mutex, because otherwise
     // the scheduler could already start processing the event that we schedule
     // and call setup() on this action before we insert the value in events_.
@@ -88,8 +88,7 @@ template <class T> void Action<T>::setup() noexcept {
   BaseAction::setup();
   if (value_ptr_ == nullptr) { // only do this once, even if the action was triggered multiple times
     // lock if this is a physical action
-    std::unique_lock<std::mutex> lock =
-        is_logical() ? std::unique_lock<std::mutex>() : std::unique_lock<std::mutex>(mutex_events_);
+    UniqueLock<Mutex> lock = is_logical() ? UniqueLock<Mutex>() : UniqueLock<Mutex>(mutex_events_);
     const auto& node = events_.extract(events_.begin());
     reactor_assert(!node.empty());
     reactor_assert(node.key() == environment()->scheduler()->logical_time());

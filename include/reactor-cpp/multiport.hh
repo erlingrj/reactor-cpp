@@ -19,11 +19,13 @@
 #include "assert.hh"
 #include "fwd.hh"
 
+#include "reactor-cpp/platform/platform.hh"
+
 namespace reactor {
 
 class BaseMultiport { // NOLINT cppcoreguidelines-special-member-functions,-warnings-as-errors
 private:
-  std::atomic<std::size_t> size_{0};
+  Atomic<std::size_t> size_{0};
   std::vector<std::size_t> present_ports_{};
 
   // record that the port with the given index has been set

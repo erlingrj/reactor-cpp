@@ -70,9 +70,9 @@ private:
   void build_dependency_graph(Reactor* reactor);
   void calculate_indexes();
 
-  std::mutex shutdown_mutex_{};
+  Mutex shutdown_mutex_{};
 
-  auto startup(const TimePoint& start_time) -> std::thread;
+  auto startup(const TimePoint& start_time) -> Thread;
 
 public:
   explicit Environment(unsigned int num_workers, bool fast_fwd_execution = default_fast_fwd_execution,
@@ -101,7 +101,7 @@ public:
   void register_port(BasePort* port) noexcept;
   void register_input_action(BaseAction* action);
   void assemble();
-  auto startup() -> std::thread;
+  auto startup() -> Thread;
   void sync_shutdown();
   void async_shutdown();
 

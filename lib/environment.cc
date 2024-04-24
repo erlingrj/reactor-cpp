@@ -184,7 +184,7 @@ void Environment::build_dependency_graph(Reactor* reactor) { // NOLINT
 
 void Environment::sync_shutdown() {
   {
-    std::lock_guard<std::mutex> lock{shutdown_mutex_};
+    std::lock_guard<Mutex> lock{shutdown_mutex_};
 
     if (phase_ >= Phase::Shutdown) {
       // sync_shutdown() was already called -> abort
@@ -312,12 +312,12 @@ void Environment::calculate_indexes() {
   max_reaction_index_ = index - 1;
 }
 
-auto Environment::startup() -> std::thread {
+auto Environment::startup() -> Thread {
   validate(this == top_environment_, "startup() may only be called on the top environment");
   return startup(get_physical_time());
 }
 
-auto Environment::startup(const TimePoint& start_time) -> std::thread {
+auto Environment::startup(const TimePoint& start_time) -> Thread {
   validate(this->phase() == Phase::Assembly, "startup() may only be called during assembly phase!");
 
   log::Debug() << "Building the Dependency-Graph";
@@ -347,8 +347,8 @@ auto Environment::startup(const TimePoint& start_time) -> std::thread {
   // start processing events
   phase_ = Phase::Execution;
 
-  return std::thread([this, start_time]() {
-    std::vector<std::thread> threads;
+  return Thread([this, start_time]() {
+    std::vector<Thread> threads;
     threads.reserve(contained_environments_.size());
     // startup all contained environments recursively
     for (auto* env : contained_environments_) {
@@ -370,17 +370,17 @@ auto Environment::startup(const TimePoint& start_time) -> std::thread {
 
 void Environment::dump_trigger_to_yaml(std::ofstream& yaml, const BaseAction& trigger) {
   yaml << "      - name: " << trigger.name() << std::endl;
-  if (dynamic_cast<const StartupTrigger*>(&trigger) != nullptr) {
-    yaml << "        type: startup" << std::endl;
-  } else if (dynamic_cast<const ShutdownTrigger*>(&trigger) != nullptr) {
-    yaml << "        type: shutdown" << std::endl;
-  } else if (dynamic_cast<const Timer*>(&trigger) != nullptr) {
-    yaml << "        type: timer" << std::endl;
-  } else if (trigger.is_logical()) {
-    yaml << "        type: logical action" << std::endl;
-  } else {
-    yaml << "        type: physical action" << std::endl;
-  }
+  // if (dynamic_cast<const StartupTrigger*>(&trigger) != nullptr) {
+  //   yaml << "        type: startup" << std::endl;
+  // } else if (dynamic_cast<const ShutdownTrigger*>(&trigger) != nullptr) {
+  //   yaml << "        type: shutdown" << std::endl;
+  // } else if (dynamic_cast<const Timer*>(&trigger) != nullptr) {
+  //   yaml << "        type: timer" << std::endl;
+  // } else if (trigger.is_logical()) {
+  //   yaml << "        type: logical action" << std::endl;
+  // } else {
+  //   yaml << "        type: physical action" << std::endl;
+  // }
   yaml << "        trigger_of:" << std::endl;
   for (auto* const reaction : trigger.triggers()) {
     yaml << "          - " << reaction->fqn() << std::endl;

@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "Makefrag": "makefile",
+    "iostream": "cpp",
+    "stdexcept": "cpp"
+  }
+}

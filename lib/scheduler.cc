@@ -170,13 +170,13 @@ auto EventQueue::extract_next_event() -> ActionListPtr {
 }
 
 auto EventQueue::insert_event_at(const Tag& tag) -> const ActionListPtr& {
-  auto shared_lock = std::shared_lock<std::shared_mutex>(mutex_);
+  auto shared_lock = SharedLock<SharedMutex>(mutex_);
 
   auto event_it = event_queue_.find(tag);
   if (event_it == event_queue_.end()) {
     shared_lock.unlock();
     {
-      auto unique_lock = std::unique_lock<std::shared_mutex>(mutex_);
+      auto unique_lock = UniqueLock<SharedMutex>(mutex_);
       if (action_list_pool_.empty()) {
         fill_action_list_pool();
       }
@@ -260,7 +260,7 @@ void Scheduler::start() {
     // Other schedulers (enclaves or federates) could try to access our logical
     // time and our event queue. Thus, we need to lock the main scheduling mutex
     // in order to avoid data races.
-    std::lock_guard<std::mutex> lock_guard(scheduling_mutex_);
+    std::lock_guard<Mutex> lock_guard(scheduling_mutex_);
 
     // Initialize our logical time to the value right before the start tag. This
     // is important for usage with enclaves/federates, to indicate, that no events
@@ -336,7 +336,7 @@ void Scheduler::next() { // NOLINT
   cleanup_after_tag();
 
   {
-    std::unique_lock<std::mutex> lock{scheduling_mutex_};
+    UniqueLock<Mutex> lock{scheduling_mutex_};
 
     while (triggered_actions_ == nullptr || triggered_actions_->empty()) {
       if (triggered_actions_ != nullptr) {
@@ -475,7 +475,7 @@ void Scheduler::schedule_sync(BaseAction* action, const Tag& tag) {
 auto Scheduler::schedule_async(BaseAction* action, const Duration& delay) -> Tag {
   Tag tag;
   {
-    std::lock_guard<std::mutex> lock_guard(scheduling_mutex_);
+    std::lock_guard<Mutex> lock_guard(scheduling_mutex_);
     tag = Tag::from_physical_time(get_physical_time() + delay);
     schedule_sync(action, tag);
   }
@@ -485,7 +485,7 @@ auto Scheduler::schedule_async(BaseAction* action, const Duration& delay) -> Tag
 
 auto Scheduler::schedule_async_at(BaseAction* action, const Tag& tag) -> bool {
   {
-    std::lock_guard<std::mutex> lock_guard(scheduling_mutex_);
+    std::lock_guard<Mutex> lock_guard(scheduling_mutex_);
     if (tag <= logical_time_) {
       return false;
     }
@@ -497,7 +497,7 @@ auto Scheduler::schedule_async_at(BaseAction* action, const Tag& tag) -> bool {
 
 auto Scheduler::schedule_empty_async_at(const Tag& tag) -> bool {
   {
-    std::lock_guard<std::mutex> lock_guard(scheduling_mutex_);
+    std::lock_guard<Mutex> lock_guard(scheduling_mutex_);
     if (tag <= logical_time_) {
       // If we try to insert an empty event at the current logical time, then we
       // succeeded because there must be an event at this tag that is currently

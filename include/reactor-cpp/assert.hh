@@ -41,10 +41,10 @@ namespace reactor {
 
 class ValidationError : public std::runtime_error {
 private:
-  static auto build_message(std::string_view msg) noexcept -> std::string;
+  static auto build_message(std::string msg) noexcept -> std::string;
 
 public:
-  explicit ValidationError(const std::string_view msg)
+  explicit ValidationError(const std::string msg)
       : std::runtime_error(build_message(msg)) {}
 };
 
@@ -59,8 +59,8 @@ inline void print_debug_backtrace() {
 }
 #endif
 
-constexpr inline void validate([[maybe_unused]] bool condition, [[maybe_unused]] const std::string_view message) {
-  if constexpr (runtime_validation) { // NOLINT
+inline void validate([[maybe_unused]] bool condition, [[maybe_unused]] const std::string message) {
+  if (runtime_validation) { // NOLINT
     if (!condition) {
 #ifdef __linux__
       print_debug_backtrace();

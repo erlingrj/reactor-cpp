@@ -18,16 +18,17 @@
 #include <string>
 #include <utility>
 
+#include "reactor-cpp/platform/platform.hh"
 namespace reactor::log {
 
 template <bool enabled> class BaseLogger {};
 
 template <> class BaseLogger<true> {
 private:
-  using Lock = std::unique_lock<std::mutex>;
+  using Lock = UniqueLock<Mutex>;
 
   const std::string log_prefix_{};
-  inline static std::mutex mutex_{}; // NOLINT
+  inline static Mutex mutex_{}; // NOLINT
   Lock lock_{};
 
 public:
@@ -39,7 +40,7 @@ public:
   BaseLogger(const BaseLogger&) = delete;
   auto operator=(const BaseLogger&) -> BaseLogger& = delete;
   BaseLogger(BaseLogger&&) = delete;
-  auto operator=(BaseLogger&&) -> BaseLogger& = delete;
+  auto operator=(BaseLogger &&) -> BaseLogger& = delete;
 
   template <class T> auto operator<<(const T& msg) -> BaseLogger& {
     std::cerr << msg; // NOLINT
@@ -55,7 +56,7 @@ public:
   BaseLogger(const BaseLogger&) = delete;
   auto operator=(const BaseLogger&) -> BaseLogger& = delete;
   BaseLogger(BaseLogger&&) = delete;
-  auto operator=(BaseLogger&&) -> BaseLogger& = delete;
+  auto operator=(BaseLogger &&) -> BaseLogger& = delete;
 
   template <class T> auto operator<<([[maybe_unused]] const T& /*unused*/) const -> const BaseLogger& { return *this; }
 
@@ -98,10 +99,10 @@ public:
       , warn_prefix_("[WARN]  (" + name + ") ")
       , error_prefix_("[ERROR] (" + name + ") ") {}
 
-  [[nodiscard]] auto debug() const -> BaseLogger<debug_enabled> { return BaseLogger<debug_enabled>(debug_prefix_); }
-  [[nodiscard]] auto info() const -> BaseLogger<info_enabled> { return BaseLogger<info_enabled>(info_prefix_); }
-  [[nodiscard]] auto warn() const -> BaseLogger<warn_enabled> { return BaseLogger<warn_enabled>(warn_prefix_); }
-  [[nodiscard]] auto error() const -> BaseLogger<error_enabled> { return BaseLogger<error_enabled>(error_prefix_); }
+  [[nodiscard]] auto debug() const -> BaseLogger<debug_enabled> {}
+  [[nodiscard]] auto info() const -> BaseLogger<info_enabled> {}
+  [[nodiscard]] auto warn() const -> BaseLogger<warn_enabled> {}
+  [[nodiscard]] auto error() const -> BaseLogger<error_enabled> {}
 };
 
 } // namespace reactor::log

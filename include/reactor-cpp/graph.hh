@@ -118,7 +118,7 @@ public:
     return graph_[source];
   }
 
-  [[nodiscard]] auto get_upstream(E vertex) const noexcept -> std::optional<E> {
+  [[nodiscard]] auto get_upstream(E vertex) const noexcept -> E {
     for (const auto& [source, sinks] : graph_) {
       if (sinks.second.contains(vertex)) {
         return source;

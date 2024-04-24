@@ -18,7 +18,7 @@
 namespace reactor {
 
 class PhysicalTimeBarrier {
-  inline static std::atomic<Duration> last_observed_physical_time_{Duration::zero()}; // NOLINT
+  inline static Atomic<Duration> last_observed_physical_time_{Duration::zero()}; // NOLINT
 
 public:
   static inline auto try_acquire_tag(const Tag& tag) -> bool {
@@ -36,7 +36,7 @@ public:
     return tag.time_point() < physical_time;
   }
 
-  static inline auto acquire_tag(const Tag& tag, std::unique_lock<std::mutex>& lock, Scheduler* scheduler,
+  static inline auto acquire_tag(const Tag& tag, UniqueLock<Mutex>& lock, Scheduler* scheduler,
                                  const std::function<bool(void)>& abort_waiting) -> bool {
     if (try_acquire_tag(tag)) {
       return true;
@@ -79,8 +79,8 @@ public:
   // The caller must hold a lock on the scheduler mutex
   inline auto try_acquire_tag(const Tag& tag) { return tag <= released_time_; }
 
-  inline auto acquire_tag(const Tag& tag, std::unique_lock<std::mutex>& lock,
-                          const std::function<bool(void)>& abort_waiting) -> bool {
+  inline auto acquire_tag(const Tag& tag, UniqueLock<Mutex>& lock, const std::function<bool(void)>& abort_waiting)
+      -> bool {
     if (try_acquire_tag(tag)) {
       return true;
     }
